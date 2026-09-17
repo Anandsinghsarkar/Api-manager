@@ -1,55 +1,41 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase/admin';
-import { FieldValue } from 'firebase-admin/firestore';
-import { requireUser, errorResponse, parseJson } from '@/lib/auth/guard';
-import { apiSchema } from '@/lib/validation';
-import { encryptSecret } from '@/lib/crypto';
-import { audit } from '@/lib/audit';
+import { requireAdmin, errorResponse } from '@/lib/auth/guard';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
   try {
-    const user = await requireUser();
+    await requireAdmin();
     const { searchParams } = new URL(req.url);
     const q = (searchParams.get('q') ?? '').toLowerCase().trim();
-    const folder = searchParams.get('folder');
-    const tag = searchParams.get('tag');
-    const method = searchParams.get('method');
+    const status = searchParams.get('status');
 
-                    const snap = await db.collection('providers').where('ownerId', '==', user.uid).get();
-    const items: any[] = snap.docs.map((d) => {
-      const data: any = d.data();
-      const { encryptedKey, ...safe } = data;
-      return { id: d.id, ...safe, hasKey: Boolean(encryptedKey) };
-    });
-    if (q) items = items.filter((a) => a.name.toLowerCase().includes(q) || (a.description ?? '').toLowerCase().includes(q));
-    if (folder) items = items.filter((a) => a.folder === folder);
-    if (method) items = items.filter((a) => a.method === method);
-    if (tag) items = items.filter((a) => (a.tags ?? []).includes(tag));
-    items.sort((a, b) => (b.updatedAt?._seconds ?? 0) - (a.updatedAt?._seconds ?? 0));
-    return NextResponse.json({ items });
-  } catch (err) { return errorResponse(err); }
-}
+    const snap = await db.collection('users').limit(1000).get();
+    let items: any[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
 
-export async function POST(req: Request) {
-  try {
-    const user = await requireUser();
-    const input = await parseJson<any>(req, apiSchema);
-    const authConfig = input.authType === 'none' ? {} : {
-      headerName: input.authConfig.headerName,
-      username: input.authConfig.username,
-      secret: input.authConfig.token || input.authConfig.password
-        ? encryptSecret(input.authConfig.token ?? input.authConfig.password!) : undefined,
+    if (q) {
+      items = items.filter(
+        (u) =>
+          (u.email ?? '').toLowerCase().includes(q) ||
+          (u.displayName ?? '').toLowerCase().includes(q),
+      );
+    }
+    if (status && status !== 'all') {
+      items = items.filter((u) => u.status === status);
+    }
+
+    const stats = {
+      total: items.length,
+      active: items.filter((u) => u.status === 'active').length,
+      suspended: items.filter((u) => u.status === 'suspended').length,
+      admins: items.filter((u) => u.role === 'admin').length,
     };
-    const ref = await db.collection('apis').add({
-      ownerId: user.uid, name: input.name, description: input.description, baseUrl: input.baseUrl,
-      method: input.method, authType: input.authType, authConfig,
-      headers: input.headers, query: input.query, body: input.body, folder: input.folder,
-      tags: input.tags, enabled: input.enabled,
-      createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
-    });
-    await audit({ actorId: user.uid, actorEmail: user.email, action: 'api.create', target: ref.id, meta: { name: input.name } });
-    return NextResponse.json({ id: ref.id }, { status: 201 });
-  } catch (err) { return errorResponse(err); }
+
+    items.sort((a, b) => (b.createdAt?._seconds ?? 0) - (a.createdAt?._seconds ?? 0));
+
+    return NextResponse.json({ items, stats });
+  } catch (err) {
+    return errorResponse(err);
+  }
 }
