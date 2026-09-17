@@ -17,9 +17,9 @@ export async function GET(req: Request) {
     const tag = searchParams.get('tag');
     const method = searchParams.get('method');
 
-    const snap = await db.collection('apis').where('ownerId', '==', user.uid).get();
-    let items = snap.docs.map((d) => {
-      const data = d.data();
+            const snap = await db.collection('apis').where('ownerId', '==', user.uid).get();
+    let items: any[] = snap.docs.map((d) => {
+      const data: any = d.data();
       const { authConfig, ...safe } = data;
       return { id: d.id, ...safe, authConfigured: Boolean(authConfig?.secret) };
     });
