@@ -17,12 +17,12 @@ export async function GET(req: Request) {
     const tag = searchParams.get('tag');
     const method = searchParams.get('method');
 
-            const snap = await db.collection('apis').where('ownerId', '==', user.uid).get();
-    let items: any[] = snap.docs.map((d) => {
+                const snap = await db.collection('apiKeys').where('ownerId', '==', user.uid).get();
+    const items: any[] = snap.docs.map((d) => {
       const data: any = d.data();
-      const { authConfig, ...safe } = data;
-      return { id: d.id, ...safe, authConfigured: Boolean(authConfig?.secret) };
-    });
+      const { keyHash, ...safe } = data;
+      return { id: d.id, ...safe };
+    }).sort((a, b) => (b.createdAt?._seconds ?? 0) - (a.createdAt?._seconds ?? 0));
     if (q) items = items.filter((a) => a.name.toLowerCase().includes(q) || (a.description ?? '').toLowerCase().includes(q));
     if (folder) items = items.filter((a) => a.folder === folder);
     if (method) items = items.filter((a) => a.method === method);
