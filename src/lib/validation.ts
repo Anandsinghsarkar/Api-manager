@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
-const safeString = (max: number) =>
-  z.string().trim().max(max).refine((v) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(v), 'Invalid control characters');
+const safeString = (max: number, min = 0) =>
+  z.string().trim().min(min).max(max).refine((v) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(v), 'Invalid control characters');
 
-export const headerSchema = z.object({ key: safeString(120).min(1), value: safeString(2000), enabled: z.boolean().default(true) });
-export const querySchema = z.object({ key: safeString(120).min(1), value: safeString(2000), enabled: z.boolean().default(true) });
+export const headerSchema = z.object({ key: safeString(120, 1), value: safeString(2000), enabled: z.boolean().default(true) });
+export const querySchema = z.object({ key: safeString(120, 1), value: safeString(2000), enabled: z.boolean().default(true) });
 
 export const apiSchema = z.object({
-  name: safeString(120).min(2),
+  name: safeString(120, 2),
   description: safeString(1000).default(''),
   baseUrl: z.string().url().max(2048),
   method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
@@ -27,7 +27,7 @@ export const apiSchema = z.object({
 });
 
 export const apiKeySchema = z.object({
-  name: safeString(80).min(2),
+  name: safeString(80, 2),
   description: safeString(500).default(''),
   scopes: z.array(z.enum(['read', 'write', 'proxy', 'admin'])).min(1).default(['read']),
   expiresAt: z.string().datetime().nullable().optional(),
@@ -38,8 +38,8 @@ export const apiKeySchema = z.object({
 
 export const providerSchema = z.object({
   provider: z.enum(['openai', 'gemini', 'anthropic', 'custom']),
-  label: safeString(80).min(2),
-  apiKey: safeString(8000).min(8),
+  label: safeString(80, 2),
+  apiKey: safeString(8000, 8),
   baseUrl: z.string().url().max(2048).optional(),
 });
 
@@ -54,6 +54,6 @@ export const proxySchema = z.object({
 
 export const validateKeySchema = z.object({
   provider: z.enum(['openai', 'gemini', 'anthropic', 'custom']),
-  apiKey: safeString(8000).min(8),
+  apiKey: safeString(8000, 8),
   baseUrl: z.string().url().max(2048).optional(),
 });

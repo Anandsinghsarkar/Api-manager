@@ -13,9 +13,9 @@ export async function GET() {
     const user = await requireUser();
     const snap = await db.collection('apiKeys').where('ownerId', '==', user.uid).get();
     const items = snap.docs.map((d) => {
-      const { keyHash, ...safe } = d.data();
+      const { keyHash, ...safe } = d.data() as Record<string, any>;
       return { id: d.id, ...safe };
-    }).sort((a, b) => (b.createdAt?._seconds ?? 0) - (a.createdAt?._seconds ?? 0));
+    }).sort((a: any, b: any) => (b.createdAt?._seconds ?? 0) - (a.createdAt?._seconds ?? 0));
     return NextResponse.json({ items });
   } catch (err) { return errorResponse(err); }
 }

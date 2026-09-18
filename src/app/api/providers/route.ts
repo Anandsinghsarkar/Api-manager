@@ -4,7 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { requireUser, errorResponse, parseJson } from '@/lib/auth/guard';
 import { providerSchema } from '@/lib/validation';
 import { encryptSecret } from '@/lib/crypto';
-import { verifyProviderKey, PROVIDER_META } from '@/lib/providers';
+import { verifyProviderKey, PROVIDER_META, type ProviderId } from '@/lib/providers';
 import { audit } from '@/lib/audit';
 
 export const runtime = 'nodejs';
@@ -34,6 +34,6 @@ export async function POST(req: Request) {
       lastVerifiedAt: FieldValue.serverTimestamp(), createdAt: FieldValue.serverTimestamp(),
     });
     await audit({ actorId: user.uid, actorEmail: user.email, action: 'provider.connect', target: ref.id, meta: { provider: input.provider, state: verification.state } });
-    return NextResponse.json({ id: ref.id, verification, meta: PROVIDER_META[input.provider] }, { status: 201 });
+    return NextResponse.json({ id: ref.id, verification, meta: PROVIDER_META[input.provider as ProviderId] }, { status: 201 });
   } catch (err) { return errorResponse(err); }
 }
