@@ -8,8 +8,18 @@ function buildApp(): App {
   const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
   if (!b64) throw new Error('FIREBASE_SERVICE_ACCOUNT_BASE64 is not set');
   let sa: Record<string, string>;
-  try { sa = JSON.parse(Buffer.from(b64, 'base64').toString('utf8')); }
-  catch { throw new Error('FIREBASE_SERVICE_ACCOUNT_BASE64 is not valid base64 JSON'); }
+  try {
+    // Vercel environment variables are sometimes stored as the raw service-account
+    // JSON, so support that format as well as the documented base64 format.
+    const trimmed = b64.trim();
+    const decoded = Buffer.from(trimmed, 'base64').toString('utf8').trim();
+    sa = JSON.parse(trimmed.startsWith('{') ? trimmed : decoded);
+  } catch {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_BASE64 must contain a Firebase service-account JSON object or its base64 encoding');
+  }
+  if (!sa.project_id || !sa.client_email || !sa.private_key) {
+    throw new Error('Firebase service-account credentials are missing project_id, client_email, or private_key');
+  }
   return initializeApp({
     credential: cert({
       projectId: sa.project_id,
@@ -20,7 +30,36 @@ function buildApp(): App {
   });
 }
 
-const app = buildApp();
-export const adminAuth: Auth = getAuth(app);
-export const db: Firestore = getFirestore(app);
-db.settings({ ignoreUndefinedProperties: true });
+let app: App | undefined;
+let auth: Auth | undefined;
+let firestore: Firestore | undefined;
+
+function getAdminApp(): App {
+  return (app ??= buildApp());
+}
+
+function getAdminAuth(): Auth {
+  return (auth ??= getAuth(getAdminApp()));
+}
+
+function getAdminDb(): Firestore {
+  if (!firestore) {
+    firestore = getFirestore(getAdminApp());
+    firestore.settings({ ignoreUndefinedProperties: true });
+  }
+  return firestore;
+}
+
+// Lazy proxies keep Firebase credentials out of Next.js build-time page collection;
+// credentials are required only when an API route or server action actually runs.
+export const adminAuth = new Proxy({} as Auth, {
+  get(_target, property, receiver) {
+    return Reflect.get(getAdminAuth(), property, receiver);
+  },
+});
+
+export const db = new Proxy({} as Firestore, {
+  get(_target, property, receiver) {
+    return Reflect.get(getAdminDb(), property, receiver);
+  },
+});

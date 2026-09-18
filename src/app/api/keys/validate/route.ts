@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { requireUser, errorResponse, parseJson } from '@/lib/auth/guard';
 import { validateKeySchema } from '@/lib/validation';
 import { verifyProviderKey } from '@/lib/providers';

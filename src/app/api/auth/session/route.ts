@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { createSession, sessionCookieOptions, SESSION_COOKIE, getSessionUser } from '@/lib/auth/session';
 import { audit } from '@/lib/audit';
 import { memoryLimit } from '@/lib/ratelimit';

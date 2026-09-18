@@ -1,4 +1,6 @@
 'use client';
+
+export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import { User as UserIcon, Mail, Shield, Calendar, KeyRound, Boxes, LogOut, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Skeleton } from '@/components/ui/primitives';

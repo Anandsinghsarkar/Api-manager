@@ -3,7 +3,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
   createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail,
-  signOut as fbSignOut, updateProfile, onAuthStateChanged, type User,
+  signOut as fbSignOut, updateProfile, onAuthStateChanged, type User, type Auth,
 } from 'firebase/auth';
 
 const config = {
@@ -15,8 +15,21 @@ const config = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-export const app = getApps().length ? getApp() : initializeApp(config);
-export const auth = getAuth(app);
+let authInstance: Auth | undefined;
+
+function getClientAuth(): Auth {
+  if (!authInstance) {
+    const app = getApps().length ? getApp() : initializeApp(config);
+    authInstance = getAuth(app);
+  }
+  return authInstance;
+}
+
+export const auth = new Proxy({} as Auth, {
+  get(_target, property, receiver) {
+    return Reflect.get(getClientAuth(), property, receiver);
+  },
+});
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });

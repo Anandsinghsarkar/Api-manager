@@ -3,6 +3,7 @@ import { requireUser, errorResponse } from '@/lib/auth/guard';
 import { Timestamp } from 'firebase-admin/firestore';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const csvCell = (v: unknown) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 
