@@ -4,11 +4,11 @@
 
 @layer base {
   :root {
-    --background: 220 20% 98%; --foreground: 224 40% 10%; --card: 0 0% 100%;
-    --border: 220 15% 88%; --input: 220 15% 92%; --ring: 270 80% 60%;
-    --muted: 220 15% 94%; --muted-foreground: 220 10% 42%;
-    --primary: 270 80% 58%; --primary-foreground: 0 0% 100%;
-    --accent: 200 90% 50%; --accent-foreground: 0 0% 100%;
+    --background: 226 55% 97%; --foreground: 231 42% 13%; --card: 0 0% 100%;
+    --border: 226 35% 88%; --input: 226 30% 92%; --ring: 263 83% 58%;
+    --muted: 226 35% 94%; --muted-foreground: 230 18% 42%;
+    --primary: 263 83% 58%; --primary-foreground: 0 0% 100%;
+    --accent: 188 86% 42%; --accent-foreground: 0 0% 100%;
     --destructive: 0 75% 55%; --destructive-foreground: 0 0% 100%;
   }
   .dark {
@@ -20,7 +20,9 @@
     --destructive: 0 70% 55%; --destructive-foreground: 0 0% 100%;
   }
   * { @apply border-border; }
-  body { @apply bg-background text-foreground antialiased; }
+  body { @apply bg-background text-foreground antialiased; background-image: radial-gradient(circle at 100% 0%, hsl(188 86% 42% / 0.10), transparent 32rem), radial-gradient(circle at 0% 35%, hsl(263 83% 58% / 0.08), transparent 28rem); }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  @media (max-width: 1023px) { body { padding-bottom: 4.75rem; } }
   html { scroll-behavior: smooth; }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }

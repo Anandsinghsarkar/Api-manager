@@ -89,6 +89,8 @@ export function Sidebar({ user }: { user: { email: string | null; displayName: s
     </div>
   );
 
+  const mobileNav = NAV.slice(0, 5);
+
   return (
     <>
       <button onClick={() => setMobileOpen(true)}
@@ -98,6 +100,15 @@ export function Sidebar({ user }: { user: { email: string | null; displayName: s
       <aside className={cn('hidden shrink-0 border-r border-border bg-card/40 backdrop-blur-xl transition-all duration-300 lg:block', collapsed ? 'w-[76px]' : 'w-64')}>
         {content}
       </aside>
+      <nav className="fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-2xl border border-white/70 bg-white/90 p-2 shadow-[0_14px_35px_-12px_rgba(46,35,120,0.35)] backdrop-blur-xl lg:hidden" aria-label="Mobile navigation">
+        {mobileNav.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+          return <Link key={href} href={href} className={cn('flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold transition-colors', active ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' : 'text-muted-foreground')} aria-label={label}>
+            <Icon className="h-4 w-4" />
+            <span className="max-w-full truncate">{label === 'API Management' ? 'APIs' : label.replace('API ', '')}</span>
+          </Link>;
+        })}
+      </nav>
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />

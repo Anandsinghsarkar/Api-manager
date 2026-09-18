@@ -12,14 +12,14 @@ export function Shell({ user, children }: { user: SessionUser; children: React.R
         <div className="pointer-events-none fixed inset-0 bg-grid-glow" />
         <Sidebar user={user} />
         <main className="relative flex-1 overflow-x-hidden">
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/70 px-6 pl-16 backdrop-blur-xl lg:pl-6">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/70 bg-background/80 px-4 pl-16 shadow-sm backdrop-blur-xl sm:px-6 lg:pl-6">
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-emerald-400" />
               <span className="text-xs text-muted-foreground">All systems operational</span>
             </div>
             <ThemeToggle />
           </header>
-          <div className="mx-auto max-w-7xl p-6 animate-fade-up">{children}</div>
+          <div className="mx-auto max-w-7xl p-4 pb-6 animate-fade-up sm:p-6">{children}</div>
         </main>
       </div>
     </ToastProvider>
